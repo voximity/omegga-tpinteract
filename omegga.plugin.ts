@@ -76,18 +76,47 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
     this.keys = (await this.store.get("keys")) ?? {};
     this.locks = (await this.store.get("locks")) ?? {};
 
-    this.omegga.on("cmd:tpinteract", async (speaker: string) => {
-      const player = this.omegga.getPlayer(speaker);
-      if (!this.tpiAuth(player)) return;
+    this.omegga.on(
+      "cmd:tpinteract",
+      async (speaker: string, brick?: string) => {
+        const player = this.omegga.getPlayer(speaker);
+        if (!this.tpiAuth(player)) return;
 
-      const pos = await player.getPosition();
+        const pos = await player.getPosition();
 
-      this.omegga.whisper(
-        player,
-        `<color="ff0">Please insert the following into the <b>Interact</> component's <b>Write to Console</i> field</>`
-      );
-      this.omegga.whisper(player, `<code>tp:${pos.map(Math.round)}</>`);
-    });
+        if (brick === "brick") {
+          // give player a brick with the component
+          await player.loadSaveData(
+            {
+              brick_assets: ["PB_DefaultMicroBrick"],
+              bricks: [
+                {
+                  position: [0, 0, 0],
+                  size: [1, 1, 1],
+                  asset_name_index: 0,
+                  owner_index: 0,
+                  color: [255, 255, 255],
+                  components: {
+                    BCD_Interact: {
+                      bPlayInteractSound: true,
+                      Message: "",
+                      ConsoleTag: "tp:" + pos.map(Math.round),
+                    },
+                  },
+                },
+              ],
+            },
+            { quiet: true }
+          );
+        } else {
+          this.omegga.whisper(
+            player,
+            `<color="ff0">Please insert the following into the <b>Interact</> component's <b>Write to Console</i> field</>`
+          );
+          this.omegga.whisper(player, `<code>tp:${pos.map(Math.round)}</>`);
+        }
+      }
+    );
 
     this.omegga.on("cmd:wipekeys", async (speaker: string, confirm: string) => {
       const player = this.omegga.getPlayer(speaker);
@@ -123,26 +152,28 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
           const name = args[0].trim();
           const key = args[1].trim();
           if (name in this.locks)
-            return this.omegga.whisper(
+            this.omegga.whisper(
               player,
-              `<color="f00">A lock with that name already exists.</>`
+              `<color="f00">A lock with that name already exists.</> Creating a duplicate...`
             );
+          else {
+            const pos = (await player.getPosition()).map(Math.round);
+            await this.newLock(name, key, pos);
+          }
 
-          const pos = (await player.getPosition()).map(Math.round);
-          await this.newLock(name, key, pos);
           this.omegga.whisper(
             player,
-            `Created new lock <code>${name}</>. (unlocks with key <code>${key}</>)`
+            `Copied lock brick for lock <code>${name}</>. (unlocks with key <code>${key}</>)`
           );
 
           // give player a brick with the component
           await player.loadSaveData(
             {
-              brick_assets: ["PB_DefaultBrick"],
+              brick_assets: ["PB_DefaultMicroBrick"],
               bricks: [
                 {
                   position: [0, 0, 0],
-                  size: [5, 5, 6],
+                  size: [1, 1, 1],
                   asset_name_index: 0,
                   owner_index: 0,
                   color: [255, 255, 255],
@@ -255,18 +286,18 @@ export default class Plugin implements OmeggaPlugin<Config, Storage> {
 
           await player.loadSaveData(
             {
-              brick_assets: ["PB_DefaultBrick"],
+              brick_assets: ["PB_DefaultMicroBrick"],
               bricks: [
                 {
                   position: [0, 0, 0],
-                  size: [5, 5, 6],
+                  size: [1, 1, 1],
                   asset_name_index: 0,
                   owner_index: 0,
-                  color: [255, 255, 255],
+                  color: [255, 255, 0],
                   components: {
                     BCD_Interact: {
                       bPlayInteractSound: true,
-                      Message: "",
+                      Message: '<color="ff0">Key found!</>',
                       ConsoleTag: "tpkey:" + args[0],
                     },
                   },

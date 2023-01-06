@@ -14,6 +14,8 @@ Use `/tpinteract` and insert the text into an Interact component's "Write to Con
 
 `tp:X,Y,Z`
 
+Alternatively, generate the brick instantly with `/tpinteract brick`.
+
 ### Locked teleport
 
 1. Stand at the destination of your locked teleport
@@ -21,8 +23,7 @@ Use `/tpinteract` and insert the text into an Interact component's "Write to Con
     1. The `<lock-name>` is a unique name for your lock. It will always be unlocked by the same key.
     2. The `<key-name>` is a unique name for the key that unlocks this lock.
 3. Paste the copied brick. It will teleport you to the destination only if you have the required key. This is the "lock" brick.
-4. Create a new brick and add an Interact component to it.
-5. Set the "Write to Console" field to `key:<key-name>`. It will grant `<key-name>` on click, the same key name you used when you created the lock.
+4. To create the key brick, use `/locks key <key-name>`
 
 #### Changing the teleport messages
 
